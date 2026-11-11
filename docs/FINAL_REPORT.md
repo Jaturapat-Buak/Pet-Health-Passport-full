@@ -24,7 +24,7 @@ The delivered objectives are:
 | Role | Delivered behavior |
 | --- | --- |
 | Owner | Register, sign in, manage own pets and records, view appointments/reminders, opt in to appointment emails, view dashboard |
-| Vet | Find and take pets into care, manage appointments for pets in care, read records and add medical visits |
+| Vet | Find and take pets into care, manage appointments for pets in care, read records and add vaccination, medical, allergy, medication, and weight records |
 | Admin | Manage users, pets, health records, appointments and vet assignments; view system statistics |
 
 Public shareable passports and QR codes remain outside the delivered application. Admin user management is implemented.
@@ -53,7 +53,7 @@ The database also contains `pet_vet_access` and `appointment_notifications`. Rem
 - Opt-in email reminders for appointments via RabbitMQ, a separate worker, SMTP and local Mailpit; retry up to five times.
 - Owner dashboard with counts, upcoming care, recent records, and weight chart.
 - Admin dashboard with counts, recent users and pets, and recent activity.
-- Vet self-assignment to pets, admin-managed access, shared history, and vet-authored medical visits.
+- Vet self-assignment to pets, admin-managed access, shared history, and vet-authored vaccination, medical, allergy, medication, and weight records.
 - Admin user management and role changes.
 - Docker Compose services for PostgreSQL, RabbitMQ, Mailpit, API, worker and frontend; Jenkins pipeline for checkout, tests, build, deployment, and health checks.
 
@@ -75,6 +75,8 @@ Jenkins job `pet-health-passport` build #1 completed successfully, including bac
 
 On 6 November 2026, the RabbitMQ notification feature passed 16 backend tests (one database integration test was skipped because it requires a separate test database). Docker Compose and kind both reached healthy/ready state. In each environment, an opted-in demo owner received a new appointment email in Mailpit through RabbitMQ and the worker. The test appointment was deleted and the owner's prior email preference restored. The updated Jenkins pipeline has not been run yet; build #1 is historical evidence.
 
+On 11 November 2026, vet record creation was expanded to vaccinations, allergies, medications, and weights. The backend suite passed 16 tests (one separate-database integration test skipped). A Compose API test confirmed an assigned vet could add all four record types, the owner could read them, and access was denied after revocation. The temporary pet and records were deleted after the test.
+
 Browser evidence from the local demo:
 
 ![Reminder generated from the new appointment](assets/reminders-demo.png)
@@ -86,7 +88,7 @@ The new demo records live in the current local PostgreSQL volume. A fresh volume
 ## 7. Limitations and future work
 
 - The GitHub webhook is configured in the pipeline but cannot receive GitHub events until Jenkins has a public HTTPS URL and the repository webhook is created.
-- Vets can add medical visits for pets in care, but cannot edit or delete existing health records.
+- Vets can add five types of health records for pets in care, but cannot edit or delete existing records, upload documents, or edit pet profiles.
 - Email delivery is implemented for opted-in appointment reminders only and is captured locally by Mailpit. Production SMTP credentials, deliverability and bounce handling are not configured. Push and LINE delivery are not implemented. At-least-once processing can yield a duplicate if SMTP accepts a message immediately before a worker crash.
 - Document files use local Docker storage, so a production deployment would need backup and storage planning.
 - The seed is intended for a classroom demo, not production data. Demo passwords must not be used for a public deployment.

@@ -28,7 +28,10 @@ export function SharedPetDetailPage() {
       <div className="pet-profile-heading">
         <PetAvatar pet={pet} className="large-avatar" />
         <div className="pet-profile-title"><p className="eyebrow">Pet Health Passport</p><h1>{pet.name}</h1><p>{[thaiValue(pet.species), pet.breed].filter(Boolean).join(' / ')} &middot; เจ้าของ: {pet.owner_name}</p></div>
-        <Link className="primary-link" to={`/appointments/new?petId=${id}`}>สร้างนัดหมาย</Link>
+        <div className="pet-profile-actions">
+          <Link className="primary-link" to={`/appointments/new?petId=${id}&purpose=vaccination`}>นัดฉีดวัคซีน</Link>
+          <Link className="secondary-link" to={`/appointments/new?petId=${id}`}>สร้างนัดหมายอื่น</Link>
+        </div>
       </div>
       <section className="details-section" aria-labelledby="details-title">
         <h2 id="details-title">Details</h2>

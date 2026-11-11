@@ -218,7 +218,7 @@ export function HealthRecords({ petId, vet = false }) {
     <section className="details-section health-section" aria-labelledby="health-title">
       <div className="section-heading-row">
         <h2 id="health-title">Health Records</h2>
-        {status === 'ready' && !showForm && (!vet || type === 'medical-records') && <button className="primary-button" type="button" onClick={() =>  { setEditing(null); setShowForm(true); }}>เพิ่มประวัติ</button>}
+        {status === 'ready' && !showForm && (!vet || type !== 'documents') && <button className="primary-button" type="button" onClick={() =>  { setEditing(null); setShowForm(true); }}>เพิ่มประวัติ</button>}
       </div>
       <div className="record-tabs" role="tablist" aria-label="ประเภทประวัติสุขภาพ">
         {Object.entries(titles).map(([key, text]) => (
@@ -229,6 +229,7 @@ export function HealthRecords({ petId, vet = false }) {
         ))}
       </div>
       <div id="health-record-panel" role="tabpanel" aria-label={titles[type]}>
+      {vet && type === 'vaccinations' && <p className="muted">บันทึกวัคซีนเมื่อได้รับจริงแล้วเท่านั้น หากยังไม่ได้รับ ให้สร้างนัดฉีดวัคซีนแทน</p>}
       {status === 'loading' && <p className="muted" role="status">กำลังโหลดประวัติ...</p>}
       {status === 'error' && <div className="inline-error" role="alert">ไม่สามารถโหลดประวัติได้ <button className="text-button" type="button" onClick={() => setReload((value) => value + 1)}>ลองใหม่</button></div>}
       {error && <p className="inline-error" role="alert">{error}</p>}

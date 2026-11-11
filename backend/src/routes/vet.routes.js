@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../config/database.js';
 import { requireAuth, requireRole } from '../middlewares/auth.js';
-import { medicalRecordFields, readRecord } from './health-records.routes.js';
+import { readRecord, recordFieldsFor } from './health-records.routes.js';
 import { readDocumentFile } from '../services/document-files.js';
 
 export const vetRouter = Router();
@@ -102,15 +102,20 @@ vetRouter.get('/pets/:id/:resource', validId, async (request, response) => {
   response.json({ records: rows });
 });
 
-vetRouter.post('/pets/:id/medical-records', validId, async (request, response) => {
-  const record = readRecord(request.body, medicalRecordFields);
+vetRouter.post('/pets/:id/:resource', validId, async (request, response) => {
+  const definition = resources[request.params.resource];
+  const fields = recordFieldsFor(request.params.resource);
+  if (!definition || !fields) return response.status(404).json({ error: 'Record type not found' });
+  const record = readRecord(request.body, fields);
   if (!record) return response.status(400).json({ error: 'Enter valid record details' });
-  record.vet_name ||= request.user.name;
-  record.created_by = request.user.id;
+  if (request.params.resource === 'vaccinations' || request.params.resource === 'medical-records')
+    record.vet_name ||= request.user.name;
+  if (request.params.resource === 'medications') record.prescribed_by ||= request.user.name;
+  if (request.params.resource === 'medical-records') record.created_by = request.user.id;
   const columns = Object.keys(record);
   const placeholders = columns.map((_, index) => `$${index + 3}`).join(', ');
   const { rows } = await pool.query(
-    `INSERT INTO medical_records (pet_id, ${columns.join(', ')})
+    `INSERT INTO ${definition[0]} (pet_id, ${columns.join(', ')})
      SELECT a.pet_id, ${placeholders} FROM pet_vet_access a
      WHERE a.pet_id = $1 AND a.vet_id = $2 RETURNING *`,
     [request.params.id, request.user.id, ...Object.values(record)]

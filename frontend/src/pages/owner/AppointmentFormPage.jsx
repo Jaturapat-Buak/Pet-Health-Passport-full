@@ -51,6 +51,7 @@ export function AppointmentFormPage() {
   }
 
   const presetPetId = searchParams.get('petId');
+  const presetPurpose = searchParams.get('purpose') === 'vaccination' ? 'ฉีดวัคซีน' : '';
   const selectedPet = appointment?.pet_id ?? (pets.some((pet) => pet.id === presetPetId) ? presetPetId : pets[0]?.id);
 
   return (
@@ -75,7 +76,7 @@ export function AppointmentFormPage() {
               <input name="appointment_date" type="datetime-local" defaultValue={localDateTime(appointment?.appointment_date)} required />
             </label>
             <label className="full-width">จุดประสงค์การนัดหมาย
-              <input name="purpose" defaultValue={appointment?.purpose ?? ''} maxLength="5000" required />
+              <input name="purpose" defaultValue={appointment?.purpose ?? presetPurpose} maxLength="5000" required />
             </label>
             <label className="full-width">คลินิก
               <input name="clinic_name" defaultValue={appointment?.clinic_name ?? ''} maxLength="160" />

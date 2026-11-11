@@ -97,7 +97,9 @@ export function readRecord(body, fields) {
   return record;
 }
 
-export const medicalRecordFields = resources['medical-records'].fields;
+export function recordFieldsFor(resource) {
+  return resources[resource]?.fields;
+}
 
 function resourceFor(request, response) {
   const resource = resources[request.params.resource];

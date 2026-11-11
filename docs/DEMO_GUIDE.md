@@ -41,6 +41,6 @@
 
 ## Known boundaries to state during questions
 
-- Admin user management is implemented. Vets can add medical visits and manage appointments for pets in their care, but cannot edit or delete existing health records.
+- Admin user management is implemented. Vets can add vaccination, medical, allergy, medication, and weight records and manage appointments for pets in their care, but cannot edit or delete existing health records. A vaccination appointment is separate from a record of a vaccine already given.
 - GitHub push triggering needs a public Jenkins URL and webhook. The local Jenkins build was started manually.
 - In-app reminders cover multiple event types; RabbitMQ email covers appointments only and is captured by Mailpit locally. QR/shareable passport is optional future work.

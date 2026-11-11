@@ -46,11 +46,11 @@ test('admins manage assignments, owners only view status, and revoked vets lose 
     if (sql.startsWith('SELECT r.* FROM medical_records')) {
       return { rows: shared && values[0] === petId && values[1] === vetId ? medicalRecords : [] };
     }
-    if (sql.startsWith('INSERT INTO medical_records')) {
+    if (/^INSERT INTO (medical_records|vaccination_records|allergy_records|medication_records|weight_records)/.test(sql)) {
       assert.match(sql, /FROM pet_vet_access a/);
       if (!shared || values[0] !== petId || values[1] !== vetId) return { rows: [] };
       const record = { id: 'a7c350bd-46a4-480c-bcc6-a9f20e8dbbe3', pet_id: petId, visit_date: values[2] };
-      medicalRecords = [record];
+      if (sql.startsWith('INSERT INTO medical_records')) medicalRecords = [record];
       return { rows: [record] };
     }
     throw new Error(`Unexpected query: ${sql}`);
@@ -81,11 +81,21 @@ test('admins manage assignments, owners only view status, and revoked vets lose 
   assert.equal((await request('/vet/pets', vetId)).status, 200);
   assert.equal((await request(`/vet/pets/${petId}/medical-records`, vetId, 'POST', {})).status, 400);
   assert.equal((await request(`/vet/pets/${petId}/medical-records`, vetId, 'POST', { visit_date: '2026-10-05', diagnosis: 'Checkup' })).status, 201);
+  assert.equal((await request(`/vet/pets/${petId}/vaccinations`, vetId, 'POST', { vaccine_name: 'Rabies', date_received: '2026-10-05', next_due_date: '2027-10-05' })).status, 201);
+  assert.equal((await request(`/vet/pets/${petId}/vaccinations`, vetId, 'POST', { vaccine_name: 'Rabies', date_received: '2026-10-05', next_due_date: '2026-10-04' })).status, 400);
+  assert.equal((await request(`/vet/pets/${petId}/allergies`, vetId, 'POST', { allergy_type: 'food', allergen_name: 'Chicken' })).status, 201);
+  assert.equal((await request(`/vet/pets/${petId}/medications`, vetId, 'POST', { medication_name: 'Medicine' })).status, 201);
+  assert.equal((await request(`/vet/pets/${petId}/weights`, vetId, 'POST', { weight: '4.25', record_date: '2026-10-05' })).status, 201);
+  assert.equal((await request(`/vet/pets/${petId}/weights`, vetId, 'POST', { weight: '-1', record_date: '2026-10-05' })).status, 400);
+  assert.equal((await request(`/vet/pets/${petId}/documents`, vetId, 'POST', { title: 'Certificate' })).status, 404);
   const records = await request(`/vet/pets/${petId}/medical-records`, vetId);
   assert.equal((await records.json()).records.length, 1);
   assert.equal((await request(`/pets/${petId}/vets/${vetId}`, adminId, 'DELETE')).status, 204);
   assert.equal((await request(`/vet/pets/${petId}`, vetId)).status, 404);
   assert.equal((await request(`/vet/pets/${petId}/medical-records`, vetId, 'POST', { visit_date: '2026-10-05' })).status, 404);
+  assert.equal((await request(`/vet/pets/${petId}/vaccinations`, vetId, 'POST', { vaccine_name: 'Rabies', date_received: '2026-10-05' })).status, 404);
+  assert.equal((await request(`/vet/pets/${petId}/allergies`, vetId, 'POST', { allergy_type: 'food', allergen_name: 'Chicken' })).status, 404);
+  assert.equal((await request(`/vet/pets/${petId}/weights`, vetId, 'POST', { weight: '4.25', record_date: '2026-10-05' })).status, 404);
   assert.equal((await request(`/vet/pets/${petId}/medical-records`, vetId)).status, 404);
   assert.equal((await request(`/pets/${petId}/vets/${vetId}`, adminId, 'DELETE')).status, 404);
 });
